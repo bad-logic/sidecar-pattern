@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,31 +16,34 @@ import (
 
 type Customer struct {
   XMLName xml.Name `xml:"Customer"`
-  Id int `xml:"Id"`
-  Name string `xml:"Name"`
+  Id string `xml:"Id"`
+  FirstName string `xml:"FirstName"`
+  LastName string `xml:"LastName"`
   Address string `xml:"Address"`
   Phone string `xml:"Phone"`
   CreatedAt string `xml:"CreatedAt"`
 }
 
-type Users struct {
-  XMLName xml.Name `xml:"Users"`
-  Customers []*Customer `xml:"Customers>Customer"`
+type Customers struct {
+  XMLName xml.Name `xml:"Customers"`
+  Customers []*Customer `xml:"Customer"`
 }
 
 var (
   Person faker.Person 
   Address faker.Address 
   Phone faker.Phone
+  Time faker.Time
+  Id faker.UUID
 )
 
 func (customer Customer) setInformation( ) Customer {
-  currentTime := time.Now()
-  customer.Id=rand.Intn(100)
-  customer.Name = Person.Name()
+  customer.Id=Id.V4()
+  customer.FirstName = Person.FirstName()
+  customer.LastName = Person.LastName()
   customer.Address = Address.Address()
   customer.Phone = Phone.Number()
-  customer.CreatedAt = currentTime.String()
+  customer.CreatedAt = Time.RFC3339Nano(time.Now())
   return customer;
 }
 
@@ -68,12 +70,14 @@ func main(){
   Person = faker.Person()
   Address = faker.Address()
   Phone = faker.Phone()
+  Time = faker.Time()
+  Id = faker.UUID()
 
 	router := httprouter.New()
   
 	router.GET("/", panicHandler(func(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
 
-    users := &Users{}
+    users := &Customers{}
     users.Customers = []*Customer{}
     for i:=0; i< 40 ; i++ {
       customer := Customer{}.setInformation()
