@@ -1,25 +1,42 @@
 import { parseStringPromise } from "xml2js";
 
-export const handleProxyResponse = () => (proxyRes, req, res) => {
+function responseWithXmlData(url) {
+  const separateWithDot = url.split(".");
+  const extension = separateWithDot.pop();
+  let respond = false;
+  if (extension === "xml") {
+    respond = true;
+  }
+  return respond;
+}
+
+export const handleProxyResponse = () => (proxyRes, clientReq, clientRes) => {
   const body = [];
   proxyRes.on("data", (chunk) => {
     body.push(chunk);
   });
   proxyRes.on("end", async () => {
     try {
-      const response = Buffer.concat(body).toString();
-      const jsonResponse = await parseStringPromise(response, {
-        trim: true,
-        explicitArray: false,
-      });
-      res.writeHead(proxyRes.statusCode, {
-        "Content-Type": "application/json",
-      });
-      res.end(JSON.stringify(jsonResponse));
+      let response = Buffer.concat(body).toString();
+      if (responseWithXmlData(clientReq.url)) {
+        clientRes.writeHead(proxyRes.statusCode, {
+          "Content-Type": "application/xml",
+        });
+      } else {
+        clientRes.writeHead(proxyRes.statusCode, {
+          "Content-Type": "application/json",
+        });
+        response = await parseStringPromise(response, {
+          trim: true,
+          explicitArray: false,
+        });
+        response = JSON.stringify(response);
+      }
+      clientRes.end(response);
     } catch (err) {
       console.error(err);
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(
+      clientRes.writeHead(500, { "Content-Type": "application/json" });
+      clientRes.end(
         JSON.stringify({
           message: "Internal server error",
         })

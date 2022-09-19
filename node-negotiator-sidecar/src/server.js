@@ -2,6 +2,7 @@ import http from "http";
 import httpProxy from "http-proxy";
 import Logger from "./utils/logger.js";
 import { gracefulShutdown } from "./utils/graceful.js";
+import { handleProxyRequest } from "./utils/handleProxiedRequest.js";
 import { handleProxyResponse } from "./utils/handleProxiedResponse.js";
 
 const {
@@ -22,6 +23,7 @@ if (!MAIN_PROCESS && !MAIN_PROCESS_PORT) {
 const apiProxy = httpProxy.createProxyServer();
 
 apiProxy.on("proxyRes", handleProxyResponse());
+apiProxy.on("proxyReq", handleProxyRequest());
 
 const server = http.createServer((req, res) => {
   logger.send(MAIN_PROCESS, req.url, Date.now());
