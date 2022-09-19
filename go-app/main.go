@@ -24,10 +24,16 @@ type Customer struct {
   CreatedAt string `xml:"CreatedAt"`
 }
 
-type Customers struct {
-  XMLName xml.Name `xml:"Customers"`
-  Customers []*Customer `xml:"Customer"`
+type CustomersResponse struct {
+  XMLName xml.Name `xml:"Response"`
+  Customers []*Customer `xml:"Customers>Customer"`
 }
+
+type NotFoundResponse struct {
+  XMLName xml.Name `xml:Response`
+  Message string `xml:"Message"`
+}
+
 
 var (
   Person faker.Person 
@@ -41,7 +47,7 @@ func (customer Customer) setInformation( ) Customer {
   customer.Id=Id.V4()
   customer.FirstName = Person.FirstName()
   customer.LastName = Person.LastName()
-  customer.Address = Address.Address()
+  customer.Address = Address.City() +", " + Address.Country()
   customer.Phone = Phone.Number()
   customer.CreatedAt = Time.RFC3339Nano(time.Now())
   return customer;
@@ -75,25 +81,44 @@ func main(){
 
 	router := httprouter.New()
   
-	router.GET("/", panicHandler(func(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
+	router.GET("/go/customers", panicHandler(func(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
 
-    users := &Customers{}
+    users := &CustomersResponse{}
     users.Customers = []*Customer{}
     for i:=0; i< 40 ; i++ {
       customer := Customer{}.setInformation()
       users.Customers = append(users.Customers, &customer)
     }
     
-    data,err := xml.MarshalIndent(&users," "," ");
+    data,err := xml.MarshalIndent(&users,"","  ");
     if err != nil{
       http.Error(w,err.Error(),http.StatusInternalServerError)
       return 
     }
 
+    w.WriteHeader(http.StatusOK)
     w.Header().Set("Content-Type", "application/xml")
     w.Write([]byte(xml.Header))
     w.Write(data)
   }))
+
+  router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+
+    response := NotFoundResponse{
+      Message: "NOT FOUND",
+    }
+    
+    data,err := xml.MarshalIndent(response,"","  ");
+    if err != nil{
+      http.Error(w,err.Error(),http.StatusInternalServerError)
+      return 
+    }
+
+    w.WriteHeader(http.StatusNotFound)
+    w.Header().Set("Content-Type", "application/xml")
+    w.Write([]byte(xml.Header))
+    w.Write(data)
+  })
 
 	fmt.Printf("The  server is on tap now: http://localhost:%v\n",port);
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), router))
