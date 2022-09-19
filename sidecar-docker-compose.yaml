@@ -1,0 +1,62 @@
+version: "3"
+
+services:
+  go-application-service:
+    container_name: go-xml-container
+    image: go-xml:v1.0.3
+    build:
+      context: ./go-app
+      dockerfile: Imagefile
+    environment:
+      - PORT=8080
+    ports:
+      - 8080:8080
+    volumes:
+      - ./go-app:/usr/app/:cached
+
+  go-application-sidecar-service:
+    container_name: go-json-sidecar
+    image: json-sidecar:v1.0.3
+    build:
+      context: ./node-negotiator-sidecar
+      dockerfile: Imagefile
+    environment:
+      - PORT=8081
+      - MAIN_PROCESS=go-application-service
+      - MAIN_PROCESS_PORT=8080
+    ports:
+      - 8081:8081
+    depends_on:
+      - go-application-service
+    volumes:
+      - ./node-negotiator-sidecar/src:/usr/app/src
+
+  node-application-service:
+    container_name: node-xml-container
+    image: node-xml:v1.0.3
+    build:
+      context: ./node-app
+      dockerfile: Imagefile
+    environment:
+      - PORT=8082
+    ports:
+      - 8082:8082
+    volumes:
+      - ./node-app/src:/usr/app/src:cached
+
+  node-application-sidecar-service:
+    container_name: node-json-sidecar
+    image: json-sidecar:v1.0.3
+    build:
+      context: ./node-negotiator-sidecar
+      dockerfile: Imagefile
+    environment:
+      - PORT=8083
+      - MAIN_PROCESS=node-application-service
+      - MAIN_PROCESS_PORT=8082
+    ports:
+      - 8083:8083
+    depends_on:
+      - node-application-service
+    volumes:
+      - ./node-negotiator-sidecar/src:/usr/app/src
