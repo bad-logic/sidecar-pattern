@@ -6,7 +6,7 @@ const routeHandler = express();
 
 routeHandler.use(convertJsonResponseToXml());
 
-routeHandler.use((req, res, next) => {
+routeHandler.get("/js/customers", (req, res, next) => {
   const customers = [];
   for (let i = 0; i < 99; i++) {
     customers.push({ customer: generateUserInfo() });
@@ -15,6 +15,10 @@ routeHandler.use((req, res, next) => {
     customers,
   };
   res.status(200).send(usersInfo);
+});
+
+routeHandler.use((req, res, next) => {
+  res.status(404).send({ Message: "NOT FOUND" });
 });
 
 export default routeHandler;
