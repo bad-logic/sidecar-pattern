@@ -9,10 +9,23 @@ services:
       dockerfile: Imagefile
     environment:
       - PORT=8081
-    ports:
-      - 8081:8081
     volumes:
       - ./go-app:/usr/app/:cached
+
+  go-application-sidecar-service:
+    container_name: go-sidecar
+    image: json-sidecar:v1.0.3
+    build:
+      context: ./node-negotiator-sidecar
+      dockerfile: Imagefile
+    environment:
+      - PORT=8082
+      - MAIN_PROCESS=go-application-service
+      - MAIN_PROCESS_PORT=8081
+    depends_on:
+      - go-application-service
+    volumes:
+      - ./node-negotiator-sidecar/src:/usr/app/src
 
   node-application-service:
     container_name: node-xml-container
@@ -21,11 +34,24 @@ services:
       context: ./node-app
       dockerfile: Imagefile
     environment:
-      - PORT=8082
-    ports:
-      - 8082:8082
+      - PORT=8083
     volumes:
       - ./node-app/src:/usr/app/src:cached
+
+  node-application-sidecar-service:
+    container_name: node-sidecar
+    image: json-sidecar:v1.0.3
+    build:
+      context: ./node-negotiator-sidecar
+      dockerfile: Imagefile
+    environment:
+      - PORT=8084
+      - MAIN_PROCESS=node-application-service
+      - MAIN_PROCESS_PORT=8083
+    depends_on:
+      - node-application-service
+    volumes:
+      - ./node-negotiator-sidecar/src:/usr/app/src
 
   python-application-service:
     container_name: python-xml-container
@@ -34,8 +60,44 @@ services:
       context: ./python-app
       dockerfile: Imagefile
     environment:
-      - PORT=8083
-    ports:
-      - 8083:8083
+      - PORT=8085
     volumes:
       - ./python-app/src:/usr/app/src:cached
+
+  python-application-sidecar-service:
+    container_name: python-sidecar
+    image: json-sidecar:v1.0.3
+    build:
+      context: ./node-negotiator-sidecar
+      dockerfile: Imagefile
+    environment:
+      - PORT=8086
+      - MAIN_PROCESS=python-application-service
+      - MAIN_PROCESS_PORT=8085
+    depends_on:
+      - python-application-service
+    volumes:
+      - ./node-negotiator-sidecar/src:/usr/app/src
+
+  nginx_gateway_service:
+    container_name: nginx-gateway-container
+    image: nginx-gateway:v1.0.3
+    build:
+      context: ./nginx
+      dockerfile: Imagefile
+    environment:
+      - UPSTREAMS="go-application-service node-application-service python-application-service"
+      - UPSTREAM_PORTS="8081 8083 8085"
+      - SIDECAR_UPSTREAMS="go-application-sidecar-service node-application-sidecar-service python-application-sidecar-service"
+      - SIDECAR_UPSTREAMS_PORTS="8082 8084 8086"
+      - UPSTREAM_PREFIXES="go node python"
+      - SIDECAR_UPSTREAM_PREFIXES="go/sidecar node/sidecar python/sidecar"
+    ports:
+      - 80:80
+    depends_on:
+      - go-application-service
+      - go-application-sidecar-service
+      - node-application-service
+      - node-application-sidecar-service
+      - python-application-service
+      - python-application-sidecar-service
