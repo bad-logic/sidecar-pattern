@@ -26,3 +26,16 @@ services:
       - 8082:8082
     volumes:
       - ./node-app/src:/usr/app/src:cached
+
+  python-application-service:
+    container_name: python-xml-container
+    image: python-xml:v1.0.3
+    build:
+      context: ./python-app
+      dockerfile: Imagefile
+    environment:
+      - PORT=8083
+    ports:
+      - 8083:8083
+    volumes:
+      - ./python-app/src:/usr/app/src:cached

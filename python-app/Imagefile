@@ -1,0 +1,40 @@
+# -----------> Build Image
+FROM python:latest@sha256:e9c35537103a2801a30b15a77d4a56b35532c964489b125ec1ff24f3d5b53409 as depsInstall
+
+# Install curl
+RUN apt-get update && apt-get install -y --no-install-recommends curl
+
+# Install poetry dependency management tool for python
+RUN curl -sSL https://install.python-poetry.org | python3 - --version 1.2.1
+ENV PATH="/root/.local/bin:$PATH"
+
+RUN poetry config virtualenvs.create false
+
+WORKDIR /usr/app
+
+COPY ["pyproject.toml" , "poetry.lock" , "./"]
+
+# Install dependencies
+RUN  poetry install --no-dev
+
+COPY ./ ./
+
+# # docker entry command
+CMD ["python","src/server.py"]
+
+
+# #  -----------------> Deployment Image
+# FROM python:3.11.0rc2-slim-bullseye@sha256:91a895e0c71f1cde563e612d38ec28c058291a3bd1080381ec44164098b27ddd as deployment
+
+# COPY --from=depsInstall /app/env/venv /app/env/venv
+
+# ENV PATH /app/env/venv/bin:$PATH
+
+# WORKDIR /usr/app
+
+# COPY ./ ./
+
+# HEALTHCHECK --start-period=30s CMD python -c "import requests; requests.get('http://localhost:8082', timeout=2)"
+
+# # # docker entry command
+# CMD ["python","src/server.py"]

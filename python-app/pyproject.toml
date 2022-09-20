@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "python-app"
+version = "0.1.0"
+description = "simple xml based http server"
+authors = ["bad-logic <mailme.roshanbhattarai@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.85.0"
+uvicorn = "^0.18.3"
+Faker = "^14.2.0"
+json2xml = "^3.19.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
