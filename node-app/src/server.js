@@ -1,12 +1,14 @@
-import http from "http";
-import url from "url";
+import http from "node:http";
+import url from "node:url";
 import routeHandler from "./app.js";
 
 if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
   const server = http.createServer(routeHandler);
 
+  const APP_PORT = process.env.PORT || 3000;
+
   // set port to listen on the server
-  server.listen(process.env.PORT);
+  server.listen(APP_PORT);
 
   const gracefulShutdown = () => {
     // close http server
@@ -24,7 +26,7 @@ if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
 
   // when server is 'listening' event is fired log some info
   server.on("listening", () => {
-    console.info(`API server running on port ${process.env.PORT || 3000} ✔️`);
+    console.info(`API server running on port ${APP_PORT} ✔️`);
   });
 
   // handling 'error' event fired by the server
