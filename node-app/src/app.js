@@ -6,7 +6,7 @@ const routeHandler = express();
 
 routeHandler.use(convertJsonResponseToXml());
 
-routeHandler.get("/js/customers", (req, res, next) => {
+routeHandler.get("/node/customers", (req, res, next) => {
   const customers = [];
   for (let i = 0; i < 99; i++) {
     customers.push({ customer: generateUserInfo() });

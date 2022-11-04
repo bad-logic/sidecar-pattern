@@ -5,18 +5,18 @@ services:
     container_name: go-xml-container
     image: go-xml:v1.0.3
     build:
-      context: ./go-app
+      context: ../go-app
       dockerfile: Imagefile
     environment:
       - PORT=8081
     volumes:
-      - ./go-app:/usr/app/:cached
+      - ../go-app:/usr/app/:cached
 
   go-application-sidecar-service:
     container_name: go-sidecar
     image: json-sidecar:v1.0.3
     build:
-      context: ./node-negotiator-sidecar
+      context: ../node-negotiator-sidecar
       dockerfile: Imagefile
     environment:
       - PORT=8082
@@ -25,24 +25,24 @@ services:
     depends_on:
       - go-application-service
     volumes:
-      - ./node-negotiator-sidecar/src:/usr/app/src
+      - ../node-negotiator-sidecar/src:/usr/app/src
 
   node-application-service:
     container_name: node-xml-container
     image: node-xml:v1.0.3
     build:
-      context: ./node-app
+      context: ../node-app
       dockerfile: Imagefile
     environment:
       - PORT=8083
     volumes:
-      - ./node-app/src:/usr/app/src:cached
+      - ../node-app/src:/usr/app/src:cached
 
   node-application-sidecar-service:
     container_name: node-sidecar
     image: json-sidecar:v1.0.3
     build:
-      context: ./node-negotiator-sidecar
+      context: ../node-negotiator-sidecar
       dockerfile: Imagefile
     environment:
       - PORT=8084
@@ -51,24 +51,24 @@ services:
     depends_on:
       - node-application-service
     volumes:
-      - ./node-negotiator-sidecar/src:/usr/app/src
+      - ../node-negotiator-sidecar/src:/usr/app/src
 
   python-application-service:
     container_name: python-xml-container
     image: python-xml:v1.0.3
     build:
-      context: ./python-app
+      context: ../python-app
       dockerfile: Imagefile
     environment:
       - PORT=8085
     volumes:
-      - ./python-app/src:/usr/app/src:cached
+      - ../python-app/src:/usr/app/src:cached
 
   python-application-sidecar-service:
     container_name: python-sidecar
     image: json-sidecar:v1.0.3
     build:
-      context: ./node-negotiator-sidecar
+      context: ../node-negotiator-sidecar
       dockerfile: Imagefile
     environment:
       - PORT=8086
@@ -77,13 +77,13 @@ services:
     depends_on:
       - python-application-service
     volumes:
-      - ./node-negotiator-sidecar/src:/usr/app/src
+      - ../node-negotiator-sidecar/src:/usr/app/src
 
   nginx_gateway_service:
     container_name: nginx-gateway-container
     image: nginx-gateway:v1.0.3
     build:
-      context: ./nginx
+      context: ../nginx
       dockerfile: Imagefile
     environment:
       - UPSTREAMS="go-application-service node-application-service python-application-service"
